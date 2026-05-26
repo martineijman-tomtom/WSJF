@@ -1,0 +1,208 @@
+<div style="font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;font-size:14px;color:#1a1a1a;background:#fff;padding:20px;max-width:920px;margin:0 auto">
+
+<h1 style="font-size:20px;font-weight:600;margin:0 0 4px 0;color:#1a1a1a">WSJF Backlog Scorer</h1>
+<p style="font-size:13px;color:#666;margin:0 0 18px 0">Weighted Shortest Job First &mdash; score and rank your backlog by economic value. Higher WSJF = do it first.</p>
+
+<div id="summary" style="display:none;margin-bottom:18px">
+  <span id="s-count-wrap" style="display:inline-block;background:#f4f5f6;border-radius:8px;padding:10px 16px;min-width:110px;margin-right:10px;margin-bottom:8px">
+    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">Items</div>
+    <div id="s-count" style="font-size:20px;font-weight:600;color:#1a1a1a">0</div>
+  </span>
+  <span id="s-top-wrap" style="display:inline-block;background:#f4f5f6;border-radius:8px;padding:10px 16px;min-width:160px;margin-right:10px;margin-bottom:8px">
+    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">Top item</div>
+    <div id="s-top" style="font-size:13px;font-weight:600;color:#1a1a1a">&#8212;</div>
+  </span>
+  <span id="s-avg-wrap" style="display:inline-block;background:#f4f5f6;border-radius:8px;padding:10px 16px;min-width:110px;margin-bottom:8px">
+    <div style="font-size:11px;color:#888;text-transform:uppercase;letter-spacing:0.04em;margin-bottom:3px">Avg WSJF</div>
+    <div id="s-avg" style="font-size:20px;font-weight:600;color:#1a1a1a">&#8212;</div>
+  </span>
+</div>
+
+<div style="display:flex;gap:8px;margin-bottom:14px;flex-wrap:wrap;align-items:center">
+  <input type="text" id="new-item" placeholder="Type a backlog item and press Enter..." maxlength="100"
+    style="flex:1;min-width:200px;padding:8px 12px;font-size:14px;font-family:inherit;border:1px solid #ccc;border-radius:7px;background:#fff;color:#1a1a1a;outline:none" />
+  <button onclick="addItem()"
+    style="padding:8px 14px;font-size:13px;font-family:inherit;border:1px solid #1a1a1a;border-radius:7px;background:#1a1a1a;color:#fff;cursor:pointer;white-space:nowrap">
+    + Add item
+  </button>
+  <button onclick="importSample()"
+    style="padding:8px 14px;font-size:13px;font-family:inherit;border:1px solid #ccc;border-radius:7px;background:#fff;color:#1a1a1a;cursor:pointer;white-space:nowrap">
+    Load sample data
+  </button>
+</div>
+
+<div style="overflow-x:auto">
+  <table id="main-table" style="display:none;width:100%;border-collapse:collapse;font-size:13px;table-layout:fixed">
+    <thead>
+      <tr style="border-bottom:1px solid #ddd">
+        <th style="width:36px;font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">#</th>
+        <th style="font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">Item</th>
+        <th title="Business Value" style="width:62px;font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">BV</th>
+        <th title="Time Criticality" style="width:62px;font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">TC</th>
+        <th title="Risk Reduction / Opportunity Enablement" style="width:62px;font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">RR</th>
+        <th title="Job Size / Effort" style="width:62px;font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">Size</th>
+        <th title="WSJF = (BV+TC+RR) / Size" style="width:70px;font-size:11px;font-weight:600;color:#888;text-align:left;padding:6px 8px;text-transform:uppercase;letter-spacing:0.04em">WSJF</th>
+        <th style="width:40px"></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<div id="empty" style="text-align:center;padding:2rem;color:#999;font-size:14px;border:1px dashed #ddd;border-radius:10px;margin-top:8px">
+  Add your first backlog item above, or click &ldquo;Load sample data&rdquo; to explore.
+</div>
+
+<p style="font-size:12px;color:#aaa;margin-top:10px;line-height:1.7">
+  <strong>BV</strong> = Business value &nbsp;&middot;&nbsp;
+  <strong>TC</strong> = Time criticality &nbsp;&middot;&nbsp;
+  <strong>RR</strong> = Risk reduction / opportunity enablement &nbsp;&middot;&nbsp;
+  <strong>Size</strong> = Job size (effort)<br>
+  Score each: 1, 2, 3, 5, 8, 13, 20 &nbsp;&middot;&nbsp;
+  <strong>Formula: WSJF = (BV + TC + RR) &divide; Size</strong> &mdash; highest score = highest priority.
+</p>
+
+<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+  <button onclick="exportCSV()"
+    style="padding:8px 14px;font-size:13px;font-family:inherit;border:1px solid #ccc;border-radius:7px;background:#fff;color:#1a1a1a;cursor:pointer">
+    &#8659; Export CSV
+  </button>
+  <button onclick="clearAll()"
+    style="padding:8px 14px;font-size:13px;font-family:inherit;border:1px solid #ccc;border-radius:7px;background:#fff;color:#c0392b;cursor:pointer">
+    &#x2715; Clear all
+  </button>
+</div>
+
+</div>
+
+<script>
+var FIBS = [1,2,3,5,8,13,20];
+var items = [];
+var nextId = 1;
+
+function fibOptions(val) {
+  return FIBS.map(function(f) {
+    return '<option value="' + f + '"' + (f === val ? ' selected' : '') + '>' + f + '</option>';
+  }).join('');
+}
+
+function calcWsjf(it) {
+  return (it.bv + it.tc + it.rr) / it.size;
+}
+
+function badgeStyle(score, max) {
+  var pct = score / max;
+  if (pct >= 0.66) return 'display:inline-block;min-width:44px;text-align:center;padding:3px 8px;border-radius:6px;font-weight:600;font-size:13px;background:#e6f4d7;color:#2d6a0a';
+  if (pct >= 0.33) return 'display:inline-block;min-width:44px;text-align:center;padding:3px 8px;border-radius:6px;font-weight:600;font-size:13px;background:#fef3cd;color:#7a4800';
+  return 'display:inline-block;min-width:44px;text-align:center;padding:3px 8px;border-radius:6px;font-weight:600;font-size:13px;background:#fde8e4;color:#8b2012';
+}
+
+function esc(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function render() {
+  var tbody = document.getElementById('tbody');
+  var empty = document.getElementById('empty');
+  var table = document.getElementById('main-table');
+  var summary = document.getElementById('summary');
+
+  if (!items.length) {
+    tbody.innerHTML = '';
+    empty.style.display = 'block';
+    table.style.display = 'none';
+    summary.style.display = 'none';
+    return;
+  }
+
+  empty.style.display = 'none';
+  table.style.display = 'table';
+  summary.style.display = 'block';
+
+  var sorted = items.slice().sort(function(a,b) { return calcWsjf(b) - calcWsjf(a); });
+  var maxW = calcWsjf(sorted[0]);
+
+  document.getElementById('s-count').textContent = items.length;
+  var topName = sorted[0].name;
+  document.getElementById('s-top').textContent = topName.length > 20 ? topName.slice(0,18) + '\u2026' : topName;
+  var avg = items.reduce(function(s,i) { return s + calcWsjf(i); }, 0) / items.length;
+  document.getElementById('s-avg').textContent = avg.toFixed(1);
+
+  var selectStyle = 'font-size:13px;font-family:inherit;padding:4px;width:54px;border:1px solid #ccc;border-radius:6px;background:#f4f5f6;color:#1a1a1a;cursor:pointer';
+
+  tbody.innerHTML = sorted.map(function(it, idx) {
+    var score = calcWsjf(it);
+    return '<tr style="border-bottom:1px solid #eee">' +
+      '<td style="padding:7px 8px;font-weight:600;color:#999;width:36px">' + (idx+1) + '</td>' +
+      '<td style="padding:7px 8px;font-size:13px">' + esc(it.name) + '</td>' +
+      '<td style="padding:7px 8px;width:62px"><select style="' + selectStyle + '" onchange="update(' + it.id + ',\'bv\',this.value)">' + fibOptions(it.bv) + '</select></td>' +
+      '<td style="padding:7px 8px;width:62px"><select style="' + selectStyle + '" onchange="update(' + it.id + ',\'tc\',this.value)">' + fibOptions(it.tc) + '</select></td>' +
+      '<td style="padding:7px 8px;width:62px"><select style="' + selectStyle + '" onchange="update(' + it.id + ',\'rr\',this.value)">' + fibOptions(it.rr) + '</select></td>' +
+      '<td style="padding:7px 8px;width:62px"><select style="' + selectStyle + '" onchange="update(' + it.id + ',\'size\',this.value)">' + fibOptions(it.size) + '</select></td>' +
+      '<td style="padding:7px 8px;width:70px"><span style="' + badgeStyle(score, maxW) + '">' + score.toFixed(1) + '</span></td>' +
+      '<td style="padding:7px 8px;width:40px"><button onclick="del(' + it.id + ')" title="Remove" style="background:none;border:none;cursor:pointer;color:#999;font-size:18px;padding:2px 4px;border-radius:5px;line-height:1">&times;</button></td>' +
+    '</tr>';
+  }).join('');
+}
+
+function addItem() {
+  var inp = document.getElementById('new-item');
+  var name = inp.value.trim();
+  if (!name) return;
+  items.push({ id: nextId++, name: name, bv: 3, tc: 3, rr: 3, size: 3 });
+  inp.value = '';
+  render();
+}
+
+function update(id, field, val) {
+  var it = items.filter(function(i) { return i.id === id; })[0];
+  if (it) { it[field] = +val; render(); }
+}
+
+function del(id) {
+  items = items.filter(function(i) { return i.id !== id; });
+  render();
+}
+
+function clearAll() {
+  if (items.length && confirm('Remove all items?')) { items = []; render(); }
+}
+
+function importSample() {
+  var samples = [
+    ['User login via SSO', 8, 5, 8, 5],
+    ['Fix checkout bug', 13, 13, 5, 3],
+    ['Dark mode UI', 5, 2, 1, 8],
+    ['API rate limiting', 8, 8, 13, 5],
+    ['Onboarding flow redesign', 8, 5, 3, 13],
+    ['Export to CSV', 5, 3, 2, 3],
+    ['GDPR data deletion', 8, 13, 13, 5],
+    ['Push notifications', 5, 3, 2, 8],
+    ['Performance dashboard', 3, 2, 5, 8],
+    ['2FA support', 8, 8, 13, 5]
+  ];
+  samples.forEach(function(s) {
+    items.push({ id: nextId++, name: s[0], bv: s[1], tc: s[2], rr: s[3], size: s[4] });
+  });
+  render();
+}
+
+function exportCSV() {
+  var sorted = items.slice().sort(function(a,b) { return calcWsjf(b) - calcWsjf(a); });
+  var rows = [['Rank','Item','Business Value','Time Criticality','Risk Reduction','Job Size','WSJF']];
+  sorted.forEach(function(it, i) {
+    rows.push([i+1, it.name, it.bv, it.tc, it.rr, it.size, calcWsjf(it).toFixed(2)]);
+  });
+  var csv = rows.map(function(r) { return r.map(function(c) { return '"' + c + '"'; }).join(','); }).join('\n');
+  var a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+  a.download = 'wsjf-backlog.csv';
+  a.click();
+}
+
+document.getElementById('new-item').addEventListener('keydown', function(e) {
+  if (e.key === 'Enter') addItem();
+});
+
+render();
+</script>
